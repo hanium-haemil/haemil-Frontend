@@ -13,6 +13,7 @@ function MyPage({navigation}) {
             const storedData = await AsyncStorage.getItem('nickname');
             if (storedData !== null) {
                 setUserData(storedData); // JSON.parse()를 사용하지 않음
+                console.log('nickname:', storedData);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -22,30 +23,10 @@ function MyPage({navigation}) {
     fetchUserData();
   }, []);
 
-    // useEffect(() => {
-    //     // AsyncStorage에서 데이터를 가져오는 로직
-    //     const fetchUserData = async () => {
-    //         try {
-    //             const storedData = await AsyncStorage.getItem('nickname');
-    //             if (storedData !== null) {
-    //                 const parsedData = JSON.parse(storedData);
-    //                 setUserData(parsedData);
-    //             }
-    //         } catch (error) {
-    //             console.error('Error fetching data:', error);
-    //         }
-    //     };
-
-    //     fetchUserData();
-    // }, []); // 컴포넌트가 마운트될 때 한 번만 실행
-
   return (
     <>
     <ScrollView style={styles.header}>
     <View style={styles.container}>
-      {/* <Text style={{ fontWeight: 'bold', marginLeft: 10 }}>
-        {userData && userData.result && userData.result.nickname}
-      </Text> */}
       <Text style={{ fontWeight: 'bold', marginLeft: 10 }}>{userData}</Text>
       </View>
 

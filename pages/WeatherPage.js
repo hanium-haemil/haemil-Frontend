@@ -6,27 +6,32 @@ import WeatherBox from '../components/homepage/WeatherBox';
 import WeekToWeatherBox from '../components/weatherpage/WeekToWeatherBox';
 import AirQuality from "../components/weatherpage/AirQuality";
 import TimeToWeatherBox from "../components/weatherpage/TimeToWeatherBox";
+import OutboundItems from "../components/weatherpage/OutboundItems";
 
 function WeatherPage({navigation}) {
     return(
         <>
             <View style={styles.container}>
-              <ScrollView >
+                
+              <ScrollView showsHorizontalScrollIndicator = {false}>
                   <View style={{marginBottom : 20}}>
                     <WeatherBox/>
                   </View>
                   
+                  <View style={styles.timeWeather}>
+                    <TimeToWeatherBox/>
+                  </View>
 
                   <View style={styles.weekWeather}>
                     <WeekToWeatherBox/>
                   </View>
 
-                  <View style={styles.timeWeather}>
-                    <TimeToWeatherBox/>
+                  <View style={styles.airWeather}>
+                      <AirQuality/>
                   </View>
 
                   <View style={styles.airWeather}>
-                      <AirQuality/>
+                      <OutboundItems/>
                   </View>
               </ScrollView>
             </View>
@@ -55,6 +60,7 @@ const styles = StyleSheet.create({
       backgroundColor : 'white',
       height : 120,
       width : 350,
+      marginBottom : 20,
       borderRadius : 20
     },
     timeWeather : {
@@ -63,11 +69,10 @@ const styles = StyleSheet.create({
       height : 170,
       width : 350,
       marginBottom : 20,
-      marginTop : 20,
       borderRadius : 20
     },
     airWeather : {
-      backgroundColor : 'white',
+      // backgroundColor : 'black',
       width : 350,
       height : 400,
       borderRadius : 20

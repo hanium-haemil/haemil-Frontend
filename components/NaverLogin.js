@@ -3,8 +3,6 @@ import { View, Text, StyleSheet } from 'react-native';
 import WebView from 'react-native-webview';
 
 function NaverLogin ({ navigation }) {
-    const [currentUrl, setCurrentUrl] = useState('');
-    const [accessToken, setAccessToken] = useState('');
 
     const renderKakaoWebView = () => {
         return (

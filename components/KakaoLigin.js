@@ -4,6 +4,16 @@ import WebView from 'react-native-webview';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+
+// Axios 인스턴스 생성
+const axiosInstance = axios.create({
+  baseURL: 'https://todohaemil.com/auth/kakao', // 서버 엔드포인트 URL
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true, // true로 설정해서 header에서 쿠키 값 가져올 수 있도록 설정.
+});
+
 function KakaoLogin ({ navigation }) {
     const [currentUrl, setCurrentUrl] = useState('');
     const [authorizationCode, setAuthorizationCode] = useState('');
@@ -36,11 +46,7 @@ function KakaoLogin ({ navigation }) {
 
     const sendAuthorizationCode = () => {
         // 추출된 인가 코드를 서버로 POST 요청 보내기
-        axios.post('https://todohaemil.com/auth/kakao', { authorizationCode }, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
+        axiosInstance.post('https://todohaemil.com/auth/kakao', { authorizationCode })
         .then((response) => {
             const result = response.data.result; // result로 객체 추출
 
@@ -56,16 +62,30 @@ function KakaoLogin ({ navigation }) {
             const profileImageUrl = result.profileImageUrl || '';
             console.log('프로필 : ',profileImageUrl);
 
+            // 응답 헤더에서 쿠키 정보 가져오기
+            const cookies = response.headers['set-cookie'];
+
+            //쿠키에서 RT만 추출하기
+            const refreshTokens = [];
+
+            cookies.forEach((cookie) => {
+                const regex = /refresh-token=([^;]+)/;
+                const match = cookie.match(regex);
+
+                if (match) {
+                    const refreshToken = match[1];
+                    refreshTokens.push(refreshToken);
+                }
+            });
+
+            AsyncStorage.setItem('refreshTokens', JSON.stringify(refreshTokens[0]));
             AsyncStorage.setItem('ACCESS_TOKEN', ACCESS_TOKEN);
             AsyncStorage.setItem('nickname', nickname);
             AsyncStorage.setItem('userId', userId);
             AsyncStorage.setItem('profileImageUrl', profileImageUrl);
             
-            // const userDate = response.data;
-            // console.log(userDate);
-            
-            // AsyncStorage.setItem('userDate', JSON.stringify(userDate));
-    
+            console.log('refreshTokens:', refreshTokens[0]);
+
             navigation.navigate('HomePage');
 
         })
@@ -80,6 +100,7 @@ function KakaoLogin ({ navigation }) {
         <View style={styles.KakaoLogin}>
             {renderKakaoWebView()}
             <Button title="Send Authorization Code" onPress={sendAuthorizationCode} />
+
         </View>
     );
 };

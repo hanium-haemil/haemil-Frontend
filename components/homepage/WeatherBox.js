@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, PermissionsAndroid, Platform } from "react-native";
+import { View, Text, StyleSheet, ScrollView, PermissionsAndroid, Platform, Image } from "react-native";
 import Geolocation from "@react-native-community/geolocation";
 import LinearGradient from "react-native-linear-gradient";
+import Icon from 'react-native-vector-icons/Ionicons';
+import sun from '../../images/sun.png';
+import axios from "axios";
 
 function WeatherBox({ navigation }) {
   const d = new Date();
@@ -12,6 +15,8 @@ function WeatherBox({ navigation }) {
 
   const [selected, setSelection] = useState(formattedDate);
   const [weatherData, setWeatherData] = useState(null);
+  const [nowWeatherData, setNowWeatherData] = useState(null);
+  const [loading, setLoading] = useState(true); // 로딩 상태 추가
 
   useEffect(() => {
     // 위치 권한 요청 및 위치 정보 가져오기
@@ -23,45 +28,75 @@ function WeatherBox({ navigation }) {
               position => {
                 const latitude = position.coords.latitude;
                 const longitude = position.coords.longitude;
-                fetchWeatherData(latitude, longitude);
+                HeightLowerWeatherData(latitude, longitude);
+                AxiosWeatherData(latitude,longitude);
               },
               error => {
                 console.log("Error getting location: ", error);
+                setLoading(false); // 에러 발생 시 로딩 상태 업데이트
               }
             );
           } else {
             console.log("Location permission denied");
+            setLoading(false); // 권한 거부 시 로딩 상태 업데이트
           }
         })
-        .catch(err => console.warn(err));
+        .catch(err => {
+          console.warn(err);
+          setLoading(false); // 에러 발생 시 로딩 상태 업데이트
+        });
     } else {
       Geolocation.getCurrentPosition(
         position => {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
-          fetchWeatherData(latitude, longitude);
+          HeightLowerWeatherData(latitude, longitude);
+          AxiosWeatherData(latitude,longitude);
         },
         error => {
           console.log("Error getting location: ", error);
+          setLoading(false); // 에러 발생 시 로딩 상태 업데이트
         }
       );
     }
   }, []);
 
-  const fetchWeatherData = (latitude, longitude) => {
-    const API_URL = `https://todohaemil.com/weather/send?latitude=${latitude}&longitude=${longitude}`;
+  const HeightLowerWeatherData = (latitude, longitude) => {
+    const API_URL = `https://todohaemil.com/weather/data?latitude=${latitude}&longitude=${longitude}`;
     
-    fetch(API_URL)
-      .then(response => response.json())
-      .then(data => {
-        setWeatherData(data.result);
+    axios.get(API_URL)
+      .then((response) => {
+        setWeatherData(response.data);
+        console.log("weatherData : ", response.data);
+        setLoading(false); // 데이터 로딩 완료 시 로딩 상태 업데이트
       })
       .catch(error => {
-        console.error("Error fetching weather data: ", error);
-      });
+        console.error("날씨 데이터 가져오기 오류: ", error);
+        setLoading(false); // 에러 발생 시 로딩 상태 업데이트
+      })
   };
 
-  const tmpValue = weatherData && weatherData.find(item => item.category === "TMP")?.fcstValue;
+  const AxiosWeatherData = (latitude, longitude) => {
+    const API_URL = `https://todohaemil.com/weather/today?latitude=${latitude}&longitude=${longitude}`;
+    
+    axios.get(API_URL)
+      .then((response) => {
+        setNowWeatherData(response.data);
+        console.log("setNowWeatherData : ", response.data);
+      })
+      .catch(error => {
+        console.error("날씨 데이터 가져오기 오류: ", error);
+      })
+  };
+
+  if (loading) {
+    return <Text>Loading...</Text>;
+  }
+
+  console.log(nowWeatherData);
+
+  const maxTemperature = weatherData.result.max;
+  const minTemperature = weatherData.result.min;
 
   return (
     <ScrollView>
@@ -71,11 +106,23 @@ function WeatherBox({ navigation }) {
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
-        <Text style={styles.weatherInfo}>{selected}</Text>
+        <Text style={styles.today}>{selected}</Text>
 
-        <Text style={styles.weatherInfo}>
-          온도: {tmpValue !== undefined ? tmpValue : "-"}
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: -10 }}>
+          <Icon name="location" size={20} color="white" style={{ marginTop: 10 }} />
+          <Text style={styles.location}>서울시 강서구</Text>
+        </View>
+
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: 'center' }}>
+          <View>
+            <Text style={styles.weatherInfo}>
+              {/* {weatherData.temperature}° */}
+            </Text>
+            <Text style={{ fontSize: 20, color: "white", fontWeight: "bold" }}>{minTemperature}°/{maxTemperature}°</Text>
+          </View>
+
+          <Image source={sun} style={{ width: 170, height: 170, margin: -20 }} />
+        </View>
 
       </LinearGradient>
     </ScrollView>
@@ -85,14 +132,29 @@ function WeatherBox({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    height: 270,
+    height: 250,
     borderRadius: 20,
     padding: 20,
+    paddingLeft: 30
   },
-  weatherInfo: {
+  today: {
+    marginTop: 10,
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "white",
+  },
+  location: {
     fontSize: 20,
     color: "white",
-    marginBottom: 10,
+    marginTop: 10,
+    fontWeight: 'bold'
+  },
+  weatherInfo: {
+    fontSize: 90,
+    color: "white",
+    marginBottom: -20,
+    marginRight: 20,
+    fontWeight: 'bold'
   },
 });
 

@@ -71,6 +71,22 @@ function GoOutControl() {
     }
     return "-";
   }
+
+  const UVGrade = () => {
+    if (fineDustData && fineDustData[0]) {
+      if(fineDustData[0].pm10Value >= 0 && fineDustData[0].pm10Value < 31) {
+        return <Icon name="happy-outline" size={40} color="black" />
+      } else if(fineDustData[0].pm10Value >= 31 && fineDustData[0].pm10Value < 81) {
+        // return "보통";
+        return <Icon name="thumbs-up-outline"></Icon>
+      } else if(fineDustData[0].pm10Value >= 81 && fineDustData[0].pm10Value < 151) {
+        return <Icon name="sad-outline" size={40} color="black" />
+      } else {
+        return <Icon name="skull-outline" size={40} color="black" />
+      }
+    }
+    return "-";
+  }
   
 
   return (
@@ -81,7 +97,7 @@ function GoOutControl() {
         </Text>
         <View style={{flexDirection : 'row', marginBottom : 10}}>
             <View style={styles.BoxFineDust}>
-              <View style={{marginLeft : 10, marginTop : 30}}>
+              <View style={{ marginTop : 30}}>
                 <Text>{pm10Grade()}</Text>
               </View>
               <View style={{marginLeft : 10, marginTop : 25}}>
@@ -91,19 +107,43 @@ function GoOutControl() {
                 </Text>
               </View>
             </View>
-            <View style={styles.windChill}>
-              <Text style={{fontSize : 15, fontWeight : 'bold', color : 'black'}}>체감온도</Text>
+
+            <View style={styles.BoxFineDust}>
+              <View style={{marginTop : 30}}>
+                <Icon name="thermometer-outline" size={40} color="black"></Icon>
+              </View>
+              <View style={{marginLeft : 10, marginTop : 25}}>
+                <Text style={{fontSize : 15, fontWeight : 'bold', color : 'black'}}>체감온도</Text>
+                <Text style={{fontSize : 20, fontWeight : 'bold', color : 'black', marginLeft : 12}}>
+                  28°
+                </Text>
+              </View>
             </View>
         </View>
 
         <View style={{flexDirection : 'row', marginBottom : 10}}>
-            <View style={styles.dressCode}>
-              <Text style={{fontSize : 15, fontWeight : 'bold', color : 'black'}}>옷차림</Text>
-
+            <View style={styles.BoxFineDust}>
+              <View style={{ marginTop : 30}}>
+              <Icon name="shirt-outline" size={40} color="black"></Icon>
+              </View>
+              <View style={{marginLeft : 10, marginTop : 25}}>
+                <Text style={{fontSize : 15, fontWeight : 'bold', color : 'black'}}>옷차림</Text>
+                <Text style={{fontSize : 20, fontWeight : 'bold', color : 'black'}}>
+                  반팔
+                </Text>
+              </View>
             </View>
-            <View style={styles.UVrays}>
-              <Text style={{fontSize : 15, fontWeight : 'bold', color : 'black'}}>자외선</Text>
 
+            <View style={styles.BoxFineDust}>
+              <View style={{marginTop : 30}}>
+                <Icon name="happy-outline" size={40} color="black" />
+              </View>
+              <View style={{marginLeft : 10, marginTop : 25}}>
+                <Text style={{fontSize : 15, fontWeight : 'bold', color : 'black'}}>자외선</Text>
+                <Text style={{fontSize : 20, fontWeight : 'bold', color : 'black'}}>
+                  보통
+                </Text>
+              </View>
             </View>
         </View>
     </View>
@@ -125,6 +165,7 @@ const styles = StyleSheet.create({
         backgroundColor : 'white',
         width : 150,
         height : 100,
+        justifyContent : 'center',
         borderRadius : 20,
         marginRight : 5,
         flexDirection : 'row',
