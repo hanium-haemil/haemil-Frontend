@@ -11,7 +11,7 @@ function KakaoTokenManagement ({navigation}) {
     // AsyncStorage에서 데이터를 가져오는 로직
     const fetchAccessToken = async () => {
         try {
-            const storedData = await AsyncStorage.getItem('ACCESS_TOKEN');
+            const storedData = await AsyncStorage.getItem('accessToken');
             if (storedData !== null) {
               setAccessToken(storedData); // JSON.parse()를 사용하지 않음
             }
@@ -23,18 +23,23 @@ function KakaoTokenManagement ({navigation}) {
     fetchAccessToken();
   }, []);
 
+    // const accessToken = AsyncStorage.getItem('accessToken');
+
   console.log('엑세스토큰 : ',accessToken);
 
-    axios.get('https://todohaemil.com/users/validate', {
+    axios.get('https://todohaemil.com/users/validate',  {
         headers : {
-            Authorization: `Bearer ${accessToken}`,
-        },
+            Authorization:`Bearer ${accessToken}`}
+            // headers : {
+            //     Authorization: `Bearer 
+            //     ${accessToken}`,
+            //     "cccept": "application/json",}
     })
     .then((response)=>{
-        console.log(response.data);
+        console.log('엑세스 토큰 결과' , response.data);
     })
     .catch((error)=>{
-        // console.error('엑세스코드로 사용자 정보 요청 과정에서 에러가 발생 : ',error);
+        console.error('엑세스 토큰 get 에러 : ',error);
     })
 }
 

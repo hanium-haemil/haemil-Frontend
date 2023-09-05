@@ -109,7 +109,7 @@ function GoOutControl() {
             </View>
 
             <View style={styles.BoxFineDust}>
-              <View style={{marginTop : 30}}>
+              <View style={{marginTop : 30 , marginLeft : -20}}>
                 <Icon name="thermometer-outline" size={40} color="black"></Icon>
               </View>
               <View style={{marginLeft : 10, marginTop : 25}}>

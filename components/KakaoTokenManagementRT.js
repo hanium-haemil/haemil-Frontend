@@ -30,7 +30,7 @@ function KakaoTokenManagementRT ({navigation}) {
         try {
             const storedData = await AsyncStorage.getItem('refreshTokens');
             if (storedData !== null) {
-                setRefreshToken(JSON.parse(storedData)); // JSON.parse()를 사용하지 않음
+                setRefreshToken(JSON.parse(storedData));
             }
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -60,7 +60,7 @@ function KakaoTokenManagementRT ({navigation}) {
 
             // 여기서 새로운 엑세스 토큰을 사용하여 보호된 리소스에 접근할 수 있음
         } catch (error) {
-            // console.error('엑세스 토큰 재발급 오류:', error);
+            console.error('엑세스 토큰 재발급 오류:', error);
         }
     };
 

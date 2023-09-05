@@ -77,7 +77,7 @@ function WeatherBox({ navigation }) {
   };
 
   const AxiosWeatherData = (latitude, longitude) => {
-    const API_URL = `https://todohaemil.com/weather/today?latitude=${latitude}&longitude=${longitude}`;
+    const API_URL = `https://todohaemil.com/weather/today?latitude=37.570377777&longitude=126.981641666`;
     
     axios.get(API_URL)
       .then((response) => {
@@ -116,12 +116,13 @@ function WeatherBox({ navigation }) {
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: 'center' }}>
           <View>
             <Text style={styles.weatherInfo}>
+              28°
               {/* {weatherData.temperature}° */}
             </Text>
             <Text style={{ fontSize: 20, color: "white", fontWeight: "bold" }}>{minTemperature}°/{maxTemperature}°</Text>
           </View>
 
-          <Image source={sun} style={{ width: 170, height: 170, margin: -20 }} />
+          <Image source={sun} style={{ width: 170, height: 170, margin: -20, }} />
         </View>
 
       </LinearGradient>

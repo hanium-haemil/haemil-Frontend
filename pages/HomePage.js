@@ -11,12 +11,11 @@ import KakaoTokenManagement from "../components/KakaoTokenManagement";
 import KakaoTokenManagementRT from "../components/KakaoTokenManagementRT";
 
 function HomePage({navigation}){
-    const [userData, setUserData] = useState(null);
     
     return(
         <ScrollView style={styles.container}>
             <KakaoTokenManagement/>
-            <KakaoTokenManagementRT/>
+            {/* <KakaoTokenManagementRT/> */}
             <View style={styles.WeatherBox}>
                 <WeatherBox/>
             </View>

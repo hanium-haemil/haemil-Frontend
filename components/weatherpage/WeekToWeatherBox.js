@@ -22,56 +22,56 @@ function WeekToWeatherBox() {
   const [weekWeather2, setWeekWeather2] = useState(null);
   const [weekWeather3, setWeekWeather3] = useState(null);
 
-  // useEffect(() => {
-  //   // 위치 권한 요청 및 위치 정보 가져오기
-  //   if (Platform.OS === "android") {
-  //     PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
-  //       .then(granted => {
-  //         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-  //           Geolocation.getCurrentPosition(
-  //             position => {
-  //               const latitude = position.coords.latitude;
-  //               const longitude = position.coords.longitude;
-  //               AxiosWeekToWeatherBox(latitude, longitude);
-  //             },
-  //             error => {
-  //               console.log("Error getting location: ", error);
-  //             }
-  //           );
-  //         } else {
-  //           console.log("Location permission denied");
-  //         }
-  //       })
-  //       .catch(err => console.warn(err));
-  //   } else {
-  //     Geolocation.getCurrentPosition(
-  //       position => {
-  //         const latitude = position.coords.latitude;
-  //         const longitude = position.coords.longitude;
-  //         AxiosWeekToWeatherBox(latitude, longitude);
-  //       },
-  //       error => {
-  //         console.log("Error getting location: ", error);
-  //       }
-  //     );
-  //   }
-  // }, []);
+  useEffect(() => {
+    // 위치 권한 요청 및 위치 정보 가져오기
+    if (Platform.OS === "android") {
+      PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+        .then(granted => {
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            Geolocation.getCurrentPosition(
+              position => {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+                AxiosWeekToWeatherBox(latitude, longitude);
+              },
+              error => {
+                console.log("Error getting location: ", error);
+              }
+            );
+          } else {
+            console.log("Location permission denied");
+          }
+        })
+        .catch(err => console.warn(err));
+    } else {
+      Geolocation.getCurrentPosition(
+        position => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          AxiosWeekToWeatherBox(latitude, longitude);
+        },
+        error => {
+          console.log("Error getting location: ", error);
+        }
+      );
+    }
+  }, []);
 
-  // const AxiosWeekToWeatherBox = (latitude, longitude) => {
-  //   const SERVER_URL = `https://todohaemil.com/weather/tmps?latitude=${latitude}&longitude=${longitude}`;
-  //   axios.get(SERVER_URL)
-  //     .then((response) => {
-  //       setWeekWeather1(response.data[0]);
-  //       setWeekWeather2(response.data[1]);
-  //       setWeekWeather3(response.data[2]);
-  //     })
-  // }
+  const AxiosWeekToWeatherBox = (latitude, longitude) => {
+    const SERVER_URL = `https://todohaemil.com/weather/tmps?latitude=${latitude}&longitude=${longitude}`;
+    axios.get(SERVER_URL)
+      .then((response) => {
+        setWeekWeather1(response.data[0]);
+        setWeekWeather2(response.data[1]);
+        setWeekWeather3(response.data[2]);
+      })
+  }
   
   return (
     <View style={{flexDirection : 'row'}}>
         <View style={styles.weekWeather1}>
           <View style={{flexDirection : 'row'}}>
-            <Text style={{fontWeight : 'bold', fontSize : 20, marginTop : 10, color : 'white'}}>오늘</Text>
+            <Text style={styles.today}>오늘</Text>
             <Text style={{marginTop : 18,fontWeight : 'bold', color : 'white'}}> {selected}</Text>
           </View>
           <Image source={sun} style={{ width: 25, height: 25,}} />
@@ -80,7 +80,7 @@ function WeekToWeatherBox() {
 
         <View style={styles.weekWeather2}>
           <View style={{flexDirection : 'row'}}>
-            <Text style={{fontWeight : 'bold', fontSize : 20, marginTop : 10, color : '#97B6EF'}}>내일</Text>
+            <Text style={styles.formattedTomorrow}>내일</Text>
             <Text style={{marginTop : 18, color : '#97B6EF',fontWeight : 'bold'}}> {formattedTomorrow}</Text>
           </View>
           <Image source={sun} style={{ width: 25, height: 25,}} />
@@ -89,7 +89,7 @@ function WeekToWeatherBox() {
 
         <View style={styles.weekWeather3}>
           <View style={{flexDirection : 'row'}}>
-            <Text style={{fontWeight : 'bold', fontSize : 20, marginTop : 10, color : '#97B6EF'}}>모레</Text>
+            <Text style={styles.formattedAfterTomorrow}>모레</Text>
             <Text style={{marginTop : 18, color : '#97B6EF',fontWeight : 'bold'}}> {formattedAfterTomorrow}</Text>
           </View>
           <Image source={sun} style={{ width: 25, height: 25,}} />
@@ -137,6 +137,15 @@ const styles = StyleSheet.create({
         borderWidth : 1,
         alignItems : 'center',
       },
+      today : {
+        fontWeight : 'bold', fontSize : 20, marginTop : 10, color : 'white'
+      },
+      formattedTomorrow : {
+        fontWeight : 'bold', fontSize : 20, marginTop : 10, color : '#97B6EF'
+      },
+      formattedAfterTomorrow : {
+        fontWeight : 'bold', fontSize : 20, marginTop : 10, color : '#97B6EF'
+      }
 });
 
 export default WeekToWeatherBox;

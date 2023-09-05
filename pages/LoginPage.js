@@ -29,7 +29,7 @@ const LoginPage = ({ navigation }) => {
     <SafeAreaView>
 
         {/* 카카오 로그인 버튼 */}
-        <TouchableOpacity onPress={(handleKakaoLinkPress)}>
+        <TouchableOpacity onPress={()=>navigation.navigate('HomePage')}>
           <Image
             source={KakaoLoginImage}
             style={styles.loginImage}

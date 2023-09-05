@@ -48,19 +48,21 @@ function KakaoLogin ({ navigation }) {
         // 추출된 인가 코드를 서버로 POST 요청 보내기
         axiosInstance.post('https://todohaemil.com/auth/kakao', { authorizationCode })
         .then((response) => {
-            const result = response.data.result; // result로 객체 추출
+            const resultToken = response.data;
+            console.log('resultToken : ',resultToken);
+            // const result = response.data.result; // result로 객체 추출
 
-            const ACCESS_TOKEN = result.accessToken;
-            console.log('ACCESS TOKEN : ',ACCESS_TOKEN);
+            // const ACCESS_TOKEN = result.accessToken;
+            // console.log('ACCESS TOKEN : ',ACCESS_TOKEN);
 
-            const nickname = result.nickname;
-            console.log('이름 : ',nickname);
+            // const nickname = result.nickname;
+            // console.log('이름 : ',nickname);
 
-            const userId = result.userId.toString();
-            console.log('userId : ',userId);
+            // const userId = result.userId.toString();
+            // console.log('userId : ',userId);
 
-            const profileImageUrl = result.profileImageUrl || '';
-            console.log('프로필 : ',profileImageUrl);
+            // const profileImageUrl = result.profileImageUrl || '';
+            // console.log('프로필 : ',profileImageUrl);
 
             // 응답 헤더에서 쿠키 정보 가져오기
             const cookies = response.headers['set-cookie'];
@@ -79,12 +81,14 @@ function KakaoLogin ({ navigation }) {
             });
 
             AsyncStorage.setItem('refreshTokens', JSON.stringify(refreshTokens[0]));
-            AsyncStorage.setItem('ACCESS_TOKEN', ACCESS_TOKEN);
-            AsyncStorage.setItem('nickname', nickname);
-            AsyncStorage.setItem('userId', userId);
-            AsyncStorage.setItem('profileImageUrl', profileImageUrl);
+            // AsyncStorage.setItem('ACCESS_TOKEN', ACCESS_TOKEN);
+            // AsyncStorage.setItem('nickname', nickname);
+            // AsyncStorage.setItem('userId', userId);
+            // AsyncStorage.setItem('profileImageUrl', profileImageUrl);
+            AsyncStorage.setItem('accessToken', resultToken.result.accessToken);
             
             console.log('refreshTokens:', refreshTokens[0]);
+            console.log('accessToken:', resultToken.result.accessToken);
 
             navigation.navigate('HomePage');
 

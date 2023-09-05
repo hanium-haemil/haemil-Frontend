@@ -2,6 +2,7 @@ import React, {useState, useEffect} from "react";
 import {ScrollView, View, Text, StyleSheet, TouchableOpacity, Alert} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Modal from "react-native-simple-modal";
 
 function MyPage({navigation}) {
   const [userData, setUserData] = useState(null);
@@ -22,6 +23,23 @@ function MyPage({navigation}) {
 
     fetchUserData();
   }, []);
+
+  const updateuserData = () => {
+    return (
+      <View>
+        <Modal 
+                open={true}
+                modalStyle={{
+                  backgroundColor: "#fff",
+                  padding: 20,
+                  borderRadius: 10,
+                  width: "90%",
+                  height: "90%",
+                }}/>
+      </View>
+      
+    )
+  }
 
   return (
     <>
@@ -48,7 +66,7 @@ function MyPage({navigation}) {
           </Text>
         </View>
 
-        <TouchableOpacity >
+        <TouchableOpacity onPress={updateuserData} >
         <View style={styles.setting}>
           <Text style={{fontWeight : 'bold', marginLeft : 10}}>수정하기
             <Icon style={{marginLeft : 10,}}  name="chevron-forward-outline"/> 
@@ -93,6 +111,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ECEFF5',
     width : '100%',
     height : 100,
+    marginTop : 10,
     marginBottom : 10,
   },
   settingList : {
