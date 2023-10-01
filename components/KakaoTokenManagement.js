@@ -18,7 +18,7 @@ function KakaoTokenManagement ({navigation}) {
             // API 호출
             axios.post('https://todohaemil.com/users/validate', null, {
                 headers: {
-                    Authorization: `Bearer ${storedData}`,
+                    Authorization: `Bearer ${accessToken}`,
                 },
                 })
                 .then((response) => {
