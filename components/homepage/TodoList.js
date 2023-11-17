@@ -1,23 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-
-const events = [
-  {
-    id: 1,
-    title: 'Meeting 1',
-  },
-  {
-    id: 2,
-    title: 'Meeting 2',
-  },
-  {
-    id: 3,
-    title: 'Meeting 3',
-  },
-];
+import axios from 'axios';
 
 function TodoList() {
+  const [events, setEvents] = useState([]);   //오늘 일정 저장
   const [completedEvents, setCompletedEvents] = useState([]);
 
   const toggleCompletion = eventId => {
@@ -28,21 +15,47 @@ function TodoList() {
     }
   };
 
+  useEffect(() => {
+    axios.get('https://todohaemil.com/schedules/today')
+      .then(res => {
+        setEvents(res.data.result);
+      })
+      .catch(err => {
+        console.log('일정 불러오기 실패 : ', err);
+      })
+  });
+
+  if (events.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.textStyle}>오늘의 할 일</Text>
+        <View style={styles.checklistContainer}>
+
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.textStyle}>오늘의 할 일</Text>
 
       <View style={styles.checklistContainer}>
-        {events.map(event => (
+        {events.map(log => (
           <TouchableOpacity
-            key={event.id}
-            style={styles.checklistItem}
-            onPress={() => toggleCompletion(event.id)}
+            key={log.id}
+            onPress={() => toggleCompletion(log.id)}
           >
-            <Icon name="checkbox-outline" size={20} />
-            <Text style={completedEvents.includes(event.id) ? styles.completedTaskText : styles.taskText}>
-              {event.title}
-            </Text>
+            <View style={styles.checklistItem}>
+              <Icon
+                name={completedEvents.includes(log.id) ? 'checkbox' : 'checkbox-outline'}
+                size={20}
+                color={completedEvents.includes(log.id) ? 'gray' : 'black'}
+              />
+              <Text style={completedEvents.includes(log.id) ? styles.completedTaskText : styles.taskText}>
+                {log.content}
+              </Text>
+            </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -51,7 +64,6 @@ function TodoList() {
 }
 
 const styles = StyleSheet.create({
-  // 스타일 정의
   completedTaskText: {
     textDecorationLine: 'line-through',
     color: 'gray',
@@ -76,8 +88,8 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   checklistItem: {
-    marginLeft : 10,
-    marginTop : 5,
+    marginLeft: 10,
+    marginTop: 5,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,

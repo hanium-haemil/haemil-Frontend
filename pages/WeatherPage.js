@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     timeWeather : {
       flex : 3,
       backgroundColor : 'white',
-      height : 170,
+      height : 120,
       width : 350,
       marginBottom : 20,
       borderRadius : 20
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     airWeather : {
       // backgroundColor : 'black',
       width : 350,
-      height : 400,
+      height : 430,
       borderRadius : 20
     }
   });

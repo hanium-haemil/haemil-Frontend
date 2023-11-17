@@ -2,9 +2,14 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, PermissionsAndroid, Platform, Image } from "react-native";
 import Geolocation from "@react-native-community/geolocation";
 import LinearGradient from "react-native-linear-gradient";
-import Icon from 'react-native-vector-icons/Ionicons';
-import sun from '../../images/sun.png';
 import axios from "axios";
+
+import sun from '../../images/sun.png';
+import rain from '../../images/rain.png';
+import rainSnow from '../../images/rainSnow.png';
+import snowCloud from '../../images/snowCloud.png';
+import sunCloud from '../../images/sunCloud.png';
+import cloud from '../../images/cloud.png';
 
 function WeatherBox({ navigation }) {
   const d = new Date();
@@ -15,8 +20,8 @@ function WeatherBox({ navigation }) {
 
   const [selected, setSelection] = useState(formattedDate);
   const [weatherData, setWeatherData] = useState(null);
-  const [nowWeatherData, setNowWeatherData] = useState(null);
   const [loading, setLoading] = useState(true); // 로딩 상태 추가
+  const [weatherIcon, setWeatherIcon] = useState(null);
 
   useEffect(() => {
     // 위치 권한 요청 및 위치 정보 가져오기
@@ -29,7 +34,7 @@ function WeatherBox({ navigation }) {
                 const latitude = position.coords.latitude;
                 const longitude = position.coords.longitude;
                 HeightLowerWeatherData(latitude, longitude);
-                AxiosWeatherData(latitude,longitude);
+                weatherIconToday(latitude, longitude);
               },
               error => {
                 console.log("Error getting location: ", error);
@@ -51,7 +56,7 @@ function WeatherBox({ navigation }) {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
           HeightLowerWeatherData(latitude, longitude);
-          AxiosWeatherData(latitude,longitude);
+          weatherIconToday(latitude, longitude);
         },
         error => {
           console.log("Error getting location: ", error);
@@ -66,68 +71,116 @@ function WeatherBox({ navigation }) {
     
     axios.get(API_URL)
       .then((response) => {
-        setWeatherData(response.data);
-        console.log("weatherData : ", response.data);
+        setWeatherData(response.data.result);
         setLoading(false); // 데이터 로딩 완료 시 로딩 상태 업데이트
       })
       .catch(error => {
-        console.error("날씨 데이터 가져오기 오류: ", error);
+        console.log("날씨 메인 오류: ", error);
         setLoading(false); // 에러 발생 시 로딩 상태 업데이트
       })
   };
 
-  const AxiosWeatherData = (latitude, longitude) => {
-    const API_URL = `https://todohaemil.com/weather/today?latitude=37.570377777&longitude=126.981641666`;
-    
-    axios.get(API_URL)
-      .then((response) => {
-        setNowWeatherData(response.data);
-        console.log("setNowWeatherData : ", response.data);
-      })
-      .catch(error => {
-        console.error("날씨 데이터 가져오기 오류: ", error);
-      })
-  };
-
-  if (loading) {
-    return <Text>Loading...</Text>;
+  const weatherIconToday = (latitude, longitude) => {
+    axios.get(`https://todohaemil.com/weather/today?latitude=${latitude}&longitude=${longitude}`)
+    .then((response) => {
+      setWeatherIcon(response.data.result);
+    })
+    .catch(error => {
+      console.log("today 에러: ", error);
+    })
   }
 
-  console.log(nowWeatherData);
+  // 하늘상태 텍스트
+  const skyText = () => {
+    if(weatherIcon[5].fcstValue === '1') {
+      return <Text style={{ fontSize: 20, color: "white", fontWeight: "bold", marginLeft : 5 }}>맑음</Text>;
+    } else if(weatherIcon[5].fcstValue === '3') {
+      return <Text style={{ fontSize: 20, color: "white", fontWeight: "bold", marginLeft : 5 }}>구름 많음</Text>;
+    } else if(weatherIcon[5].fcstValue === '4') {
+      return <Text style={{ fontSize: 20, color: "white", fontWeight: "bold", marginLeft : 5 }}>흐림</Text>;
+    }
+  }
 
-  const maxTemperature = weatherData.result.max;
-  const minTemperature = weatherData.result.min;
+  const rainText = () => {
+    if (!weatherIcon) {
+      return '';
+    } else if (weatherIcon[6].fcstValue === '0') {
+      return skyText();
+    } else if (weatherIcon[6].fcstValue === '1') {
+      return <Text style={{ fontSize: 20, color: "white", fontWeight: "bold", marginLeft: 5 }}>비</Text>;
+    } else if (weatherIcon[6].fcstValue === '2') {
+      return <Text style={{ fontSize: 20, color: "white", fontWeight: "bold", marginLeft: 5 }}>진눈깨비</Text>;
+    } else if (weatherIcon[6].fcstValue === '3') {
+      return <Text style={{ fontSize: 20, color: "white", fontWeight: "bold", marginLeft: 5 }}>눈</Text>;
+    } else if (weatherIcon[6].fcstValue === '4') {
+      return <Text style={{ fontSize: 20, color: "white", fontWeight: "bold", marginLeft: 5 }}>소나기</Text>;
+    }
+  }
+  
+  // 하늘 상태 아이콘
+  const skyIcon = () => {
+    if(weatherIcon[5].fcstValue === '1') {
+      return  <Image source={sun} style={{ width: 120, height: 120,resizeMode:"contain"}} />
+    } else if(weatherIcon[5].fcstValue === '3') {
+      return <Image source={sunCloud} style={{ width: 130, height: 130,resizeMode:"contain"}} />
+    } else if(weatherIcon[5].fcstValue === '4') {
+      return <Image source={cloud} style={{ width: 120, height: 120,resizeMode:"contain"}} />
+    }
+  }
 
-  return (
-    <ScrollView>
-      <LinearGradient
-        colors={["#9ABAF2", "#ffffff00"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.container}
-      >
-        <Text style={styles.today}>{selected}</Text>
+  const rainIcon = () => {
+    if (!weatherIcon) {
+      return '';
+    } else if (weatherIcon[6].fcstValue === '0') {
+      return skyIcon();
+    } else if (weatherIcon[6].fcstValue === '1') {
+      return <Image source={rain} style={{ width: 120, height: 120,resizeMode:"contain"}} />
+    } else if (weatherIcon[6].fcstValue === '2') {
+      return <Image source={rainSnow} style={{ width: 120, height: 120,resizeMode:"contain"}} />
+    } else if (weatherIcon[6].fcstValue === '3') {
+      return <Image source={snowCloud} style={{ width: 120, height: 120,resizeMode:"contain"}} />
+    } else if (weatherIcon[6].fcstValue === '4') {
+      return <Image source={rain} style={{ width: 120, height: 120,resizeMode:"contain"}} />
+    }
+  }
 
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: -10 }}>
-          <Icon name="location" size={20} color="white" style={{ marginTop: 10 }} />
-          <Text style={styles.location}>서울시 강서구</Text>
+if (loading) {
+  return <Text>Loading...</Text>;
+}
+
+return (
+  <ScrollView>
+    <LinearGradient
+      colors={["#9ABAF2", "#ffffff00"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <Text style={styles.today}>{selected}</Text>
+
+      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: -10 }}>
+      </View>
+
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: 'center' }}>
+        <View>
+          {weatherData ? ( // weatherData가 null이 아닌 경우
+            <>
+              <Text style={styles.weatherInfo}>
+                {weatherData.current}°
+              </Text>
+              {rainText()}
+              <Text style={{ fontSize: 20, color: "white", fontWeight: "bold" }}>{weatherData.min}°/{weatherData.max}°</Text>
+            </>
+          ) : (
+            <Text style={styles.weatherInfo}>-</Text> // weatherData가 null인 경우
+          )}
         </View>
+        {rainIcon()}
+      </View>
 
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: 'center' }}>
-          <View>
-            <Text style={styles.weatherInfo}>
-              28°
-              {/* {weatherData.temperature}° */}
-            </Text>
-            <Text style={{ fontSize: 20, color: "white", fontWeight: "bold" }}>{minTemperature}°/{maxTemperature}°</Text>
-          </View>
-
-          <Image source={sun} style={{ width: 170, height: 170, margin: -20, }} />
-        </View>
-
-      </LinearGradient>
-    </ScrollView>
-  );
+    </LinearGradient>
+  </ScrollView>
+);
 }
 
 const styles = StyleSheet.create({
@@ -140,7 +193,7 @@ const styles = StyleSheet.create({
   },
   today: {
     marginTop: 10,
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: "bold",
     color: "white",
   },

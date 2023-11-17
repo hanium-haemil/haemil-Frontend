@@ -2,18 +2,23 @@ import React,{useState, useEffect} from "react";
 import { Image} from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Icon from 'react-native-vector-icons/Ionicons';
 import hamillLogo from "./images/HamillLogoHeader.png";
 
-import KakaoLogin from './components/KakaoLigin';
+import KakaoLogin from './components/loginpage/KakaoLigin';
 import HomePage from "./pages/HomePage";
 import DailyPage from "./pages/DailyPage";
 import LoginPage from "./pages/LoginPage";
 import WeatherPage from "./pages/WeatherPage";
 import MyPage from "./pages/MyPage";
 import Splash from "./Splash";
-import NaverLogin from "./components/NaverLogin";
+import NaverLogin from "./components/loginpage/NaverLogin";
+import WriteScreen from './pages/WriteScreen';
+import MyInfoPage from "./components/mypage/MyInfoPage";
+import AppInfoPage from "./components/mypage/AppInfoPage";
+import EditEvent from "./components/dailypage/EditEvent";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -82,39 +87,73 @@ const AppNavigator = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
 
   useEffect(() => {
-    setTimeout(() => {
-      setIsLoggedIn(false); // 유저 정보가 있으면 true, 없으면 false
-    }, 3000);
-  }, []);
+    // AsyncStorage에서 userId 가져오기
+    const checkLoginStatus = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+        if (userId !== null) {
+          setIsLoggedIn(true);
+        } else {
+          setIsLoggedIn(false);
+        }
+      } catch (error) {
+        console.error('로그인 상태 확인 에러:', error);
+        setIsLoggedIn(false); // 에러 발생 시 로그아웃 처리
+      }
+    };
 
-  if (isLoggedIn === null) {
-    return <Splash />;
-  }
+    setTimeout(() => {
+      checkLoginStatus();
+    }, 4000);
+  }, []);
 
   return (
     <NavigationContainer>
       <Stack.Navigator 
         screenOptions={{
           headerTitle: (props) => <LogoTitle />,
-          headerTitleAlign: "center",
-          headerBackVisible : false,
+          headerTitleAlign: "left",
+          headerBackVisible: false,
         }}
-          
-        initialRouteName={isLoggedIn ? "HomePage" : "LoginPage"}
+        initialRouteName={isLoggedIn ? "HomePage" : "Splash"}
       >
-
-      {isLoggedIn ? (
+        {isLoggedIn === null ? (
           <>
-            <Stack.Screen name="HomePage" component={MainTabNavigator} options={{headerLeft : null , headerStyle: { backgroundColor: '#ECEFF5'}}}/>
+            <Stack.Screen name="Splash" component={Splash} options={{ headerShown: false }} />
+            <Stack.Screen name="LoginPage" component={LoginPage} options={{ headerLeft: null, headerShown: false }} />
+            <Stack.Screen name="KakaoLogin" component={KakaoLogin} options={{ headerLeft: null, headerShown: false }} />
+            <Stack.Screen name="NaverLogin" component={NaverLogin} options={{ headerLeft: null, headerShown: false }} />
+            <Stack.Screen name="HomePage" component={MainTabNavigator} options={{ headerLeft: null, headerStyle: { backgroundColor: '#ECEFF5' } }} />
+            <Stack.Screen name="MyInfoPage" component={MyInfoPage} options={{ headerShown: false }} />
+            <Stack.Screen name="AppInfoPage" component={AppInfoPage} options={{ headerShown: false }} />
+            <Stack.Screen name="EditEvent" component={EditEvent} options={{ headerShown: false }} />
+          </>
+          
+        ) : isLoggedIn ? (
+          <>
+            <Stack.Screen name="HomePage" component={MainTabNavigator} options={{ headerLeft: null, headerStyle: { backgroundColor: '#ECEFF5' } }} />
+            <Stack.Screen name="Write" component={WriteScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="LoginPage" component={LoginPage} options={{ headerLeft: null, headerShown: false }} />
+            <Stack.Screen name="KakaoLogin" component={KakaoLogin} options={{ headerLeft: null, headerShown: false }} />
+            <Stack.Screen name="NaverLogin" component={NaverLogin} options={{ headerLeft: null, headerShown: false }} />
+            <Stack.Screen name="MyInfoPage" component={MyInfoPage} options={{ headerShown: false }} />
+            <Stack.Screen name="AppInfoPage" component={AppInfoPage} options={{ headerShown: false }} />
+            <Stack.Screen name="EditEvent" component={EditEvent} options={{ headerShown: false }} />
+          
           </>
         ) : (
           <>
-            <Stack.Screen name="LoginPage" component={LoginPage} options={{headerLeft : null, headerShown : false}}/>
-            <Stack.Screen name="KakaoLogin" component={KakaoLogin} options={{headerLeft : null, headerShown : false}}/>
-            <Stack.Screen name="NaverLogin" component={NaverLogin} options={{headerLeft : null, headerShown : false}}/>
-            <Stack.Screen name="HomePage" component={MainTabNavigator} options={{headerLeft : null , headerStyle: { backgroundColor: '#ECEFF5'}}}/>
+            <Stack.Screen name="LoginPage" component={LoginPage} options={{ headerLeft: null, headerShown: false }} />
+            <Stack.Screen name="KakaoLogin" component={KakaoLogin} options={{ headerLeft: null, headerShown: false }} />
+            <Stack.Screen name="NaverLogin" component={NaverLogin} options={{ headerLeft: null, headerShown: false }} />
+            <Stack.Screen name="Write" component={WriteScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="HomePage" component={MainTabNavigator} options={{ headerLeft: null, headerStyle: { backgroundColor: '#ECEFF5' } }} />
+            <Stack.Screen name="MyInfoPage" component={MyInfoPage} options={{ headerShown: false }} />
+            <Stack.Screen name="AppInfoPage" component={AppInfoPage} options={{ headerShown: false }} />
+            <Stack.Screen name="EditEvent" component={EditEvent} options={{ headerShown: false }} />
+         
           </>
-      )}
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,31 +1,51 @@
-import React, { useEffect} from 'react';
-import {View, Text, StyleSheet, Image} from 'react-native';
-import HamillLogoImage from './images/hamillLogoImage.png';
+import React, { useEffect } from 'react';
+import { View, StyleSheet, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-function Splash ({navigation}) {
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            //스플래시 화면이 띄워지는 시간(2초) 동안 회원 정보가 있는지 확인
-            const hasUserInfo = false;
-            const screenName = hasUserInfo ? 'Main' : 'SignIn';
-        }, 2000);
-        return () => clearTimeout(timer);
-    }, [navigation]);
+import FastImage from 'react-native-fast-image';
+import splach from './images/logo_branding_2_1_1.gif';
 
-    return(
-        <View style={styles.container}>
-            <Image source={HamillLogoImage} style={{width: 200, height: 200}}/>
-        </View>
-    );
-};
+function Splash({navigation}) {
+
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        // const refreshTokens = await AsyncStorage.getItem('refreshTokens');
+        const refreshTokens = await AsyncStorage.getItem('cookies');
+        
+        if (refreshTokens !== null) {
+          navigation.navigate('HomePage');
+        } else {
+          navigation.navigate('LoginPage');
+        }
+      } catch (error) {
+        console.error('로그인 상태 확인 에러:', error);
+      }
+    };
+
+    setTimeout(() => {
+      checkLoginStatus();
+    }, 50000);
+  }, [navigation]);
+
+  return (
+    <View style={styles.container}>
+      <FastImage
+        source={splach}
+        style={{ width: 350, height: 350 }}
+        resizeMode="contain"
+      />
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center', 
-        backgroundColor: '#fff'
-    }
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff'
+  }
 });
 
 export default Splash;

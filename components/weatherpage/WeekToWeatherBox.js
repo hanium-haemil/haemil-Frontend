@@ -1,10 +1,11 @@
 import axios from 'axios';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import { View,Text , StyleSheet, PermissionsAndroid, Platform, Image  } from 'react-native';
-
 import Geolocation from "@react-native-community/geolocation";
-import { useState } from 'react';
+
 import sun from '../../images/sun.png';
+import sunCloud from '../../images/sunCloud.png';
+import cloud from '../../images/cloud.png';
 
 function WeekToWeatherBox() {
   const d = new Date();
@@ -21,6 +22,10 @@ function WeekToWeatherBox() {
   const [weekWeather1, setWeekWeather1] = useState(null);
   const [weekWeather2, setWeekWeather2] = useState(null);
   const [weekWeather3, setWeekWeather3] = useState(null);
+
+  const [weatherSky1, setWeatherSky1] = useState(null);
+  const [weatherSky2, setWeatherSky2] = useState(null);
+  const [weatherSky3, setWeatherSky3] = useState(null);
 
   useEffect(() => {
     // 위치 권한 요청 및 위치 정보 가져오기
@@ -58,15 +63,55 @@ function WeekToWeatherBox() {
   }, []);
 
   const AxiosWeekToWeatherBox = (latitude, longitude) => {
+
     const SERVER_URL = `https://todohaemil.com/weather/tmps?latitude=${latitude}&longitude=${longitude}`;
     axios.get(SERVER_URL)
       .then((response) => {
-        setWeekWeather1(response.data[0]);
-        setWeekWeather2(response.data[1]);
-        setWeekWeather3(response.data[2]);
+        setWeekWeather1(response.data.result[0].TMP);
+        setWeatherSky1(response.data.result[0].SKY);
+
+        setWeekWeather2(response.data.result[1].TMP);
+        setWeatherSky2(response.data.result[1].SKY);
+
+        setWeekWeather3(response.data.result[0].TMP);
+        setWeatherSky3(response.data.result[0].SKY);
+      })
+      .catch(error => {
+        console.log("주간날씨 에러 : ", error);
       })
   }
+
+  const skyIcon = () => {
+    if(weatherSky1 === '1') {
+      return <Image source={sun} style={{ width: 25, height: 25,resizeMode:"contain"}} />
+    }else if(weatherSky1 === '3') {
+      return <Image source={sunCloud} style={{ width: 25, height: 25,resizeMode:"contain"}} />
+    } else {
+      return <Image source={cloud} style={{ width: 40, height: 25, resizeMode:"contain"}} />
+    }
+  }
+
+  const skyIconTomorrow = () => {
+    if(weatherSky2 === '1') {
+      return <Image source={sun} style={{ width: 25, height: 25,resizeMode:"contain"}} />
+    }else if(weatherSky2 === '3') {
+      return <Image source={sunCloud} style={{ width: 25, height: 25,resizeMode:"contain"}} />
+    } else {
+      return <Image source={cloud} style={{ width: 40, height: 25, resizeMode:"contain"}} />
+    }
+  }
+
+  const skyIconAfterTommorrow = () => {
+    if(weatherSky1 === '1') {
+      return <Image source={sun} style={{ width: 25, height: 25,resizeMode:"contain"}} />
+    }else if(weatherSky1 === '3') {
+      return <Image source={sunCloud} style={{ width: 25, height: 25,resizeMode:"contain"}} />
+    } else {
+      return <Image source={cloud} style={{ width: 40, height: 25, resizeMode:"contain"}} />
+    }
+  }
   
+
   return (
     <View style={{flexDirection : 'row'}}>
         <View style={styles.weekWeather1}>
@@ -74,8 +119,8 @@ function WeekToWeatherBox() {
             <Text style={styles.today}>오늘</Text>
             <Text style={{marginTop : 18,fontWeight : 'bold', color : 'white'}}> {selected}</Text>
           </View>
-          <Image source={sun} style={{ width: 25, height: 25,}} />
-          <Text style={{ fontSize: 20, color: "white", fontWeight: "bold" }}>28°</Text>
+          {skyIcon()}
+          <Text style={{ fontSize: 20, color: "white", fontWeight: "bold" }}>{weekWeather1}°</Text>
         </View>
 
         <View style={styles.weekWeather2}>
@@ -83,8 +128,8 @@ function WeekToWeatherBox() {
             <Text style={styles.formattedTomorrow}>내일</Text>
             <Text style={{marginTop : 18, color : '#97B6EF',fontWeight : 'bold'}}> {formattedTomorrow}</Text>
           </View>
-          <Image source={sun} style={{ width: 25, height: 25,}} />
-          <Text style={{ fontSize: 20, color: "#97B6EF", fontWeight: "bold" }}>28°</Text>
+          {skyIconTomorrow()}
+          <Text style={{ fontSize: 20, color: "#97B6EF", fontWeight: "bold" }}>{weekWeather2}°</Text>
         </View>
 
         <View style={styles.weekWeather3}>
@@ -92,8 +137,8 @@ function WeekToWeatherBox() {
             <Text style={styles.formattedAfterTomorrow}>모레</Text>
             <Text style={{marginTop : 18, color : '#97B6EF',fontWeight : 'bold'}}> {formattedAfterTomorrow}</Text>
           </View>
-          <Image source={sun} style={{ width: 25, height: 25,}} />
-          <Text style={{ fontSize: 20, color: "#97B6EF", fontWeight: "bold" }}>28°</Text>
+          {skyIconAfterTommorrow()}
+          <Text style={{ fontSize: 20, color: "#97B6EF", fontWeight: "bold" }}>{weekWeather3}°</Text>
         </View>
     </View>
     
@@ -118,7 +163,7 @@ const styles = StyleSheet.create({
       weekWeather2 : {
         width : 100,
         height : 100,
-        backgroundColor : 'white',
+        backgroundColor : '#ECF3FF',
         borderRadius : 20,
         marginRight : 5,
         marginTop : 10,
@@ -129,7 +174,7 @@ const styles = StyleSheet.create({
       weekWeather3 : {
         width : 100,
         height : 100,
-        backgroundColor : 'white',
+        backgroundColor : '#ECF3FF',
         borderRadius : 20,
         marginRight : 5,
         marginTop : 10,

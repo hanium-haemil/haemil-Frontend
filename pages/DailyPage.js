@@ -1,229 +1,358 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, FlatList, TouchableOpacity, Modal } from 'react-native';
-import CalendarComponent from '../components/dailypage/CalendarComponent';
-import Popup from '../components/dailypage/Popup';
+import { View, Text, Alert, FlatList, TouchableOpacity, Dimensions, Animated, Modal, TextInput, StyleSheet } from 'react-native';
 import axios from 'axios';
+import CalendarView from '../components/dailypage/CalendarView';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import IconModal from 'react-native-vector-icons/Ionicons';
+import DatePicker from 'react-native-date-picker';
 
-const DailyPage = () => {
-  const [selectedDate, setSelectedDate] = useState(null);
+import EditEvent from '../components/dailypage/EditEvent';
+
+function DailyPage() {
   const [events, setEvents] = useState([]);
-  const [isPopupVisible, setPopupVisible] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [newEvent, setNewEvent] = useState({ content: '', place: '', time: '08:00:00' });
+  const [selectedDate, setSelectedDate] = useState('');
+  const [modalY] = useState(new Animated.Value(Dimensions.get('window').height));
+  const [eventId, setEventId] = useState(null);
+  const [deleteEvent, setDeleteEvent] = useState(null);
+  const [markedDates, setMarkedDates] = useState({});
 
-  useEffect(() => {
-    // // 임시로 일정 목록을 설정 (이부분은 서버에서 가져오도록 변경해야 합니다)
-    setEvents([
-      { title: '일정 1' },
-      { title: '일정 2' },
-    ]);
-  }, [selectedDate]);
+  const [date, setDate] = useState(new Date());
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [dateTime, setDateTime] = useState('08:00:00');
+
+  const [showEditEventModal, setShowEditEventModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
-    // 서버에서 해당 날짜의 일정 목록을 가져오는 함수
-    // fetchEvents(date);
   };
 
-  const handleEventSelect = (event) => {
-    // 팝업 창 열기 및 선택한 일정 데이터 전달
-    setPopupVisible(true);
+  const getTodayDateString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
-  const handlePopupClose = () => {
-    // 팝업 창 닫기
-    setPopupVisible(false);
+  useEffect(() => {
+    if (selectedDate === '') {
+      axios.get('https://todohaemil.com/schedules/today')
+        .then((res) => {
+          setSelectedDate(getTodayDateString());
+          setEvents(res.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      axios.get(`https://todohaemil.com/schedules/getSchedule?localDate=${selectedDate}`)
+        .then((res) => {
+          setEvents(res.data);
+        })
+        .catch((err) => {
+          if (err.response && err.response.status === 404) {
+            setEvents([]);
+          } else {
+            console.log('일정 불러오기 실패 : ', err);
+          }
+        });
+    }
+  }, [selectedDate]);
+
+  const addEvent = async () => {
+    try {
+      const requestData = {
+        localDate: selectedDate,
+        content: newEvent.content,
+        done: false,
+        time: newEvent.time,
+        place: newEvent.place,
+        repeatType: "NONE",
+      };
+
+      await axios.post('https://todohaemil.com/schedules/schedule', requestData);
+      setNewEvent({ content: '', place: '', time: '08:00:00' }); // 초기화
+      setShowModal(false);
+    } catch (error) {
+      console.error('일정 추가 실패:', error);
+    }
+  };
+
+  const deleteEventConfirmation = () => {
+    if (deleteEvent) {
+      Alert.alert(
+        '일정 삭제',
+        '정말로 일정을 삭제하시겠습니까?',
+        [
+          { text: '취소', onPress: () => setDeleteEvent(null) },
+          { text: '삭제', onPress: () => deleteEventApi(deleteEvent) },
+        ],
+        { cancelable: false }
+      );
+      }
+    }
+
+  const deleteEventApi = async (event) => {
+    try {
+      await axios.delete(`https://todohaemil.com/schedules/schedule/${event.id}`);
+      setEvents((prevEvents) => ({
+        ...prevEvents,
+        result: prevEvents.result.filter((item) => item.id !== event.id),
+      }));
+    } catch (error) {
+      console.error('일정 삭제 실패:', error);
+    }
+    setDeleteEvent(null);
+    setEventId(null);
+  };
+  
+
+  const openModal = () => {
+    Animated.spring(modalY, {
+      toValue: Dimensions.get('window').height * 0.15,
+      useNativeDriver: false,
+    }).start();
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    Animated.spring(modalY, {
+      toValue: Dimensions.get('window').height,
+      useNativeDriver: false,
+    }).start(() => {
+      setShowModal(false);
+      setNewEvent({ content: '', place: '', time: '08:00:00' }); // 초기화
+    });
+  };
+
+  const openEditEventModal = (event) => {
+    setEditingEvent(event);
+    setShowEditEventModal(true);
+  };
+
+  const closeEditEventModal = () => {
+    setEditingEvent(null);
+    setShowEditEventModal(false);
   };
 
   return (
-    <View>
-      <CalendarComponent onSelect={handleDateSelect} />
-      <Text>{selectedDate}</Text>
-      {events.length === 0 ? (
-        <Text>일정이 없습니다!</Text>
-      ) : (
-        <FlatList
-          data={events}
-          renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => handleEventSelect(item)}>
-              <Text>{item.title}</Text>
+    <View style={{ flex: 1 }}>
+      <CalendarView
+        markedDates={markedDates}
+        selectedDate={selectedDate}
+        onSelectDate={handleDateSelect}
+      />
+      <Text style={style.selectedDateText}>{selectedDate || getTodayDateString()}</Text>
+      <FlatList
+        data={events.result}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={style.eventItem}>
+            <TouchableOpacity onPress={() => openEditEventModal(item)}>
+              <View style={{ flexDirection: 'column' }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={style.eventContent}>{item.content}</Text>
+                </View>
+                <View style={{ flexDirection: 'row' }}>
+                  <IconModal name="location-sharp" size={20} color="black" style={{ marginTop: 5, color: '#3880EC' }} />
+                  <Text style={style.eventPlace}>{item.place} | </Text>
+                  <Text style={style.eventInfo}>{item.time}</Text>
+                </View>
+              </View>
             </TouchableOpacity>
-          )}
+            <TouchableOpacity
+              onPress={() => {
+                setDeleteEvent(item);
+                setEventId(item.id);
+                deleteEventConfirmation();
+              }}
+            >
+              <IconModal name="trash-outline" size={25} color="red" style={style.trashOutline} />
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+
+      <TouchableOpacity
+        onPress={openModal}
+        style={style.addButton}
+      >
+        <Icon size={45} color="#fff" name="add"></Icon>
+      </TouchableOpacity>
+
+      <Modal transparent visible={showModal}>
+        <TouchableOpacity activeOpacity={1} onPress={closeModal}>
+          <View style={style.modalContainer}>
+            <Animated.View style={[style.modal, { transform: [{ translateY: modalY }] }]}>
+              <View style={{ flexDirection: 'row', marginBottom: 10, marginTop: 10, marginLeft: 10, marginRight: 10, alignItems: 'center' }}>
+                <Text>{selectedDate}</Text>
+              </View>
+              <TextInput
+                style={style.title}
+                placeholder="제목"
+                onChangeText={(text) => setNewEvent({ ...newEvent, content: text })}
+              />
+              <View style={{ flexDirection: 'row' }}>
+                <IconModal name="alarm-outline" style={{ marginTop: 5 }} size={20} color="black" />
+                <TouchableOpacity
+                  style={style.inputTime}
+                  onPress={() => setShowTimePicker(true)}
+                >
+                  <Text style={{ fontSize: 17 }}>{newEvent.time}</Text>
+                </TouchableOpacity>
+                <DatePicker
+                  modal
+                  open={showTimePicker}
+                  date={date}
+                  mode="time"
+                  onConfirm={(date) => {
+                    setShowTimePicker(false);
+                    const selectedTime = date.toISOString().substr(11, 8);
+                    setNewEvent({ ...newEvent, time: selectedTime });
+                  }}
+                  onCancel={() => {
+                    setShowTimePicker(false);
+                  }}
+                />
+              </View>
+              <View style={{ flexDirection: 'row' }}>
+                <IconModal name="map-outline" style={{ marginTop: 5 }} size={20} color="black" />
+                <TextInput
+                  style={style.input}
+                  placeholder="목적지"
+                  onChangeText={(text) => setNewEvent({ ...newEvent, place: text })}
+                />
+              </View>
+              <TouchableOpacity
+                onPress={addEvent}
+                style={style.addButtonModal}
+              >
+                <IconModal name="checkmark-outline" size={27} color="#fff" style={{ marginLeft: 5, marginRight: 5, marginTop: 10, marginBottom: 10, alignSelf: 'center' }} />
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {showEditEventModal && (
+        <EditEvent
+          event={editingEvent}
+          isVisible={showEditEventModal}
+          onClose={closeEditEventModal}
+          updateEvent={(updatedEvent) => {
+            const updatedEvents = events.result.map((event) =>
+              event.id === updatedEvent.id ? updatedEvent : event
+            );
+            setEvents({ ...events, result: updatedEvents });
+          }}
         />
       )}
-      <Button title="일정 추가" onPress={() => setPopupVisible(true)} />
-      <Modal visible={isPopupVisible}>
-        <Popup onClose={handlePopupClose} />
-      </Modal>
     </View>
   );
-};
+}
+
+const style = StyleSheet.create({
+  addButton: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#A8DAEE',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modal: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    height: 600,
+  },
+  addButtonModal: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    position: 'absolute',
+    right: 30,
+    bottom: 50,
+    backgroundColor: '#A8DAEE',
+    marginTop: 100,
+    marginBottom: 10,
+  },
+  title: {
+    paddingVertical: 0,
+    fontSize: 18,
+    marginBottom: 16,
+    height: 50,
+    color: "#263238",
+    borderBottomColor: "#dfdfdf",
+    borderBottomWidth: 1,
+  },
+  input: {
+    paddingVertical: 0,
+    fontSize: 16,
+    marginBottom: 16,
+    marginLeft: 10,
+    color: "#263238",
+    width: '80%'
+  },
+  eventItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderLeftWidth: 8,
+    borderLeftColor: '#3880EC',
+    margin: 8,
+    padding: 12,
+  },
+  eventContent: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  eventInfo: {
+    fontSize: 16,
+    marginTop: 3,
+    color: 'black',
+  },
+  eventPlace: {
+    fontSize: 16,
+    color: 'black',
+    marginTop: 3,
+  },
+  selectedDateText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'black',
+    marginLeft: 10,
+    marginRight: 10,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  inputTime: {
+    paddingVertical: 0,
+    fontSize: 16,
+    marginTop: 3,
+    marginBottom: 16,
+    marginLeft: 10,
+    width: 84,
+    height: 28,
+    borderRadius: 90,
+    alignItems: 'center',
+  },
+  trashOutline: {
+    marginTop: 10,
+    marginRight: 10,
+  },
+});
 
 export default DailyPage;
-// import React, {useState, useEffect} from "react";
-// import { View, Text, StyleSheet, Button, ScrollView,TouchableOpacity} from "react-native";
-
-// import { Calendar } from "react-native-calendars";
-// import Icon from 'react-native-vector-icons/Ionicons';
-
-// import Popup from '../components/dailypage/Popup';
-// import axios from "axios";
-
-// function DailyPage({navigation}){
-//     const d = new Date();
-//     const year = d.getFullYear();
-//     const month = d.getMonth() + 1;
-//     const day = d.getDate();
-//     const date = `${year}-${month}-${day}`;
-
-//     const [selected, setSelected] = useState(date);
-//     const [markedDates, setMarkedDates] = useState({});
-//     const [popupEventData, setPopupEventData] = useState({});
-//     const [popupVisible, setPopupVisible] = useState(false);
-//     const [selectedEventData, setSelectedEventData] = useState([]);
-
- 
-
-//     //일정 데이터, 지금은 임의의 일정 데이터를 입력해놓았다.
-//     //서버와 통신, 해당 날짜 데이터 가져올것
-//     useEffect(() => {
-//       setMarkedDates({
-//           '2023-08-24': { marked: true, selectedColor: '#f00', event: 'Event1'},
-//           '2023-08-31': { marked: true, selectedColor: '#f00', event: 'Event2'},
-//       });
-
-//       setSelectedEventData(markedDates[selected] || []);
-
-//     },[selected]);
-
-//     const dayNow = (day) =>{
-//         setSelected(day.dateString);
-//         setSelectedEventData(markedDates[day.dateString] || {});
-//         console.log(selected);
-//     };
-
-//     const handleOpenPopup = () => {
-//         setPopupVisible(true);
-//       }
-
-//     // 버튼 클릭 시 팝업창 닫히면서 일정 데이터베이스에 추가하도록 만들기
-//     const handleClosePopup = () => {
-//         setPopupVisible(false);
-//     };
-
-//       if(selectedEventData.event == undefined){
-//         return(
-//             <>
-//                 <View style={styles.CalendarContainer}>
-//                     <Calendar
-//                         style={{width: 410,}}
-//                         onDayPress={dayNow}
-//                         markedDates={{
-//                         ...markedDates,
-//                         [selected]: { selected: true, selectedColor: 'skyblue' },
-//                         }}
-//                         theme={{
-//                         selectedDayBackgroundColor: '#009688',
-//                         arrowColor: '#009688',
-//                         dotColor: '#009688',
-//                         todayTextColor: '#009688',
-//                         }}
-//                     />
-
-//                     <View style={styles.container}>
-//                         <Text style={styles.selectedContainer}>{selected}</Text>
-//                     </View>
-//                 </View>
-
-//                 <View style={{backgroundColor : 'white'}}>
-//                     <Text style={{fontSize: 20, marginLeft:120, marginBottom:5, marginTop:90}}>아직 일정이 없어요!</Text>
-//                     <View style={styles.btnStyle}>
-//                         <Button title="일정 추가하기" color='skyblue' onPress={handleOpenPopup} />
-//                         <Popup visible={popupVisible} onClose={handleClosePopup} />
-//                     </View>
-//                 </View>
-//             </>
-//         )
-//     } else {
-//         return(
-//             <>
-//                 <View style={styles.CalendarContainer}>
-//                     <Calendar
-//                         style={{width: 410}}
-//                         onDayPress={dayNow}
-//                         markedDates={{
-//                         ...markedDates,
-//                         [selected]: { selected: true, selectedColor: 'skyblue' },
-//                         }}
-//                         theme={{
-//                         selectedDayBackgroundColor: '#009688',
-//                         arrowColor: '#009688',
-//                         dotColor: '#009688',
-//                         todayTextColor: '#009688',
-//                         }}
-//                     />
-
-//                     <View style={styles.container}>
-//                         <Text style={styles.selectedContainer}>{selected}</Text>
-//                     </View>
-//                 </View>
-
-//                 <View style={{backgroundColor : 'white'}}>
-//                     <ScrollView style={{backgroundColor : 'white'}}>
-//                         <Text style={styles.eventContainer}>{selectedEventData.event}</Text>
-//                         <View style={styles.btnStyle_1}>
-//                             <TouchableOpacity onPress={handleOpenPopup} style={styles.btnIcon}>
-//                                 <Icon name="add" size={30} color='white' />
-//                             </TouchableOpacity>
-//                             <Popup visible={popupVisible} onClose={handleClosePopup} />
-//                         </View>
-                        
-//                     </ScrollView>
-//                 </View>
-//             </>
-//         )
-//     }
-    
-// }
-
-// const styles = StyleSheet.create({
-//     btnStyle:{
-//         marginLeft: 100,
-//         marginBottom: 150,
-//         width:200,
-//     },
-//     btnStyle_1:{
-//         marginLeft: 310,
-//         marginBottom: 90,
-//         marginTop: 180,
-//         width : 50,
-//         height : 50,
-//         backgroundColor: '#A8DAEE',
-//         borderRadius: 90,
-//         elevation : 3,
-//         bottom: 16,
-//     },
-//     container: {
-//         height : 50,
-//         alignItems : 'center',
-//     },
-//     selectedContainer: {
-//         marginTop: 10,
-//         marginRight: 230,
-//         fontSize: 20,
-//         fontWeight: 'bold',
-//     },
-//     eventContainer: {
-//         fontSize : 16
-//     },
-//     CalendarContainer: {
-//         alignItems : 'center',
-//         justifyContent : 'center',
-//         backgroundColor : '#fff'
-//     },
-//     btnIcon : {
-//         marginLeft : 10,
-//         marginTop : 10,
-//     }
-// })
-
-
-// export default DailyPage;

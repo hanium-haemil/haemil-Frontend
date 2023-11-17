@@ -5,6 +5,7 @@ import wind from '../../images/wind.png';
 import faceNeutral from '../../images/face-neutral.png';
 
 import Geolocation from "@react-native-community/geolocation";
+import axios from "axios";
 
 function AirQuality() {
     const [fineDustData, setFineDustData] = useState(null);
@@ -45,27 +46,27 @@ function AirQuality() {
   }, []);
 
   const fetchFineDustData = (latitude, longitude) => {
-    const API_URL = `https://todohaemil.com/air/send?latitude=${latitude}&longitude=${longitude}`;
+    const API_URL = `https://todohaemil.com/prepare/weather?latitude=${latitude}&longitude=${longitude}`;
 
-    fetch(API_URL)
-      .then(response => response.json())
-      .then(data => {
-        setFineDustData(data.result);
+      axios.get(API_URL)
+      .then(response => {
+        setFineDustData(response.data.result);
+      
       })
-      .catch(error => {
-        console.error("Error fetching fine dust data: ", error);
-      });
+      .catch((error)=>{
+        console.error("날씨 자세히 에러 : ", error);
+      })
   };
 
   //미세먼지
   const pm10Grade = () => {
     if (fineDustData && fineDustData[0]) {
       
-      if(fineDustData[0].pm10Value >= 0 && fineDustData[0].pm10Value < 31) {
+      if(fineDustData[0].pm10value >= 0 && fineDustData[0].pm10value < 31) {
         return <Icon name="happy-outline" size={40} color="black" />  //좋음
-      } else if(fineDustData[0].pm10Value >= 31 && fineDustData[0].pm10Value < 81) {
-        return <Icon name="thumbs-up-outline"></Icon> //보통
-      } else if(fineDustData[0].pm10Value >= 81 && fineDustData[0].pm10Value < 151) {
+      } else if(fineDustData[0].pm10value >= 31 && fineDustData[0].pm10value < 81) {
+        return <Icon name="thumbs-up-outline" size={40} color="black" ></Icon> //보통
+      } else if(fineDustData[0].pm10value >= 81 && fineDustData[0].pm10value < 151) {
         return <Icon name="sad-outline" size={40} color="black" />  //나쁨
       } else {
         return <Icon name="skull-outline" size={40} color="black" />  //매우 나쁨
@@ -77,11 +78,11 @@ function AirQuality() {
   //초미세먼지
   const pm25Grade = () => {
     if (fineDustData && fineDustData[0]) {
-      if(fineDustData[0].pm10Value >= 0 && fineDustData[0].pm10Value < 16) {
+      if(fineDustData[0].pm25value >= 0 && fineDustData[0].pm25value < 16) {
         return <Icon name="happy-outline" size={40} color="black" />  //좋음
-      } else if(fineDustData[0].pm10Value >= 16 && fineDustData[0].pm10Value < 36) {
+      } else if(fineDustData[0].pm25value >= 16 && fineDustData[0].pm25value < 36) {
         return <Icon name="thumbs-up-outline" size={40} color="black"/> //보통
-      } else if(fineDustData[0].pm10Value >= 36 && fineDustData[0].pm10Value < 76) {
+      } else if(fineDustData[0].pm25value >= 36 && fineDustData[0].pm25value < 76) {
         return <Icon name="sad-outline" size={40} color="black" />  //나쁨
       } else {
         return <Icon name="skull-outline" size={40} color="black" />  //매우나쁨
@@ -106,7 +107,7 @@ function AirQuality() {
               <View style={{marginLeft : 10, marginTop : 25}}>
                 <Text style={{fontSize : 15, fontWeight : 'bold', color : 'black'}}>미세먼지</Text>
                 <Text style={{fontSize : 20, fontWeight : 'bold', color : 'black'}}>
-                  {fineDustData && fineDustData[0] ? fineDustData[0].pm10Value : "-"}㎍/㎥
+                  {fineDustData && fineDustData[0] ? fineDustData[0].pm10value : "-"}㎍/㎥
                 </Text>
               </View>
             </View>
@@ -119,7 +120,7 @@ function AirQuality() {
               <View style={{marginLeft : 10, marginTop : 25}}>
                 <Text style={{fontSize : 15, fontWeight : 'bold', color : 'black'}}>초미세먼지</Text>
                 <Text style={{fontSize : 20, fontWeight : 'bold', color : 'black'}}>
-                  {fineDustData && fineDustData[0] ? fineDustData[0].pm25Value : "-"}㎍/㎥
+                  {fineDustData && fineDustData[0] ? fineDustData[0].pm25value : "-"}㎍/㎥
                 </Text>
               </View>
             </View>
@@ -135,8 +136,8 @@ function AirQuality() {
 
           <View style={{marginLeft : 10, marginTop : 25}}>
             <Text style={{fontSize : 15, fontWeight : 'bold', color : 'black'}}>강수확률</Text>
-            <Text style={{fontSize : 20, fontWeight : 'bold', color : 'black'}}>
-              {fineDustData && fineDustData[0] ? fineDustData[0].pm10Value : "-"}㎍/㎥
+            <Text style={{fontSize : 20, fontWeight : 'bold', color : 'black', marginLeft : 10}}>
+              {fineDustData && fineDustData[0] ? fineDustData[0].pop : "-"}%
             </Text>
           </View>
           </View>
@@ -150,7 +151,7 @@ function AirQuality() {
           <View style={{marginLeft : 10, marginTop : 25}}>
             <Text style={{fontSize : 15, fontWeight : 'bold', color : 'black'}}>강수량</Text>
             <Text style={{fontSize : 20, fontWeight : 'bold', color : 'black'}}>
-              {fineDustData && fineDustData[0] ? fineDustData[0].pm25Value : "-"}㎍/㎥
+              {fineDustData && fineDustData[0] ? fineDustData[0].pcp : "-"}
             </Text>
           </View>
           </View>
@@ -167,7 +168,7 @@ function AirQuality() {
           <View style={{marginLeft : 10, marginTop : 25}}>
             <Text style={{fontSize : 15, fontWeight : 'bold', color : 'black'}}>풍속</Text>
             <Text style={{fontSize : 20, fontWeight : 'bold', color : 'black'}}>
-              {fineDustData && fineDustData[0] ? fineDustData[0].pm10Value : "-"}㎍/㎥
+              {fineDustData && fineDustData[0] ? fineDustData[0].wsd : "-"}
             </Text>
           </View>
           </View>
@@ -175,14 +176,13 @@ function AirQuality() {
           <View style={styles.BoxAir}>
 
           <View style={{marginLeft : 10, marginTop : 30}}>
-            {/* <Text>{pm25Grade()}</Text> */}
             <Icon name="sunny-outline" size={40} color="black"></Icon>
           </View>
 
           <View style={{marginLeft : 10, marginTop : 25}}>
             <Text style={{fontSize : 15, fontWeight : 'bold', color : 'black'}}>자외선</Text>
-            <Text style={{fontSize : 20, fontWeight : 'bold', color : 'black'}}>
-              {fineDustData && fineDustData[0] ? fineDustData[0].pm25Value : "-"}㎍/㎥
+            <Text style={{fontSize : 20, fontWeight : 'bold', color : 'black', marginLeft : 15}}>
+              {fineDustData && fineDustData[0] ? fineDustData[0].uv : "-"}
             </Text>
           </View>
           </View>

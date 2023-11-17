@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import { View,Text, SafeAreaView, TouchableOpacity, Image, StyleSheet, Linking } from 'react-native';
+import React, { useEffect } from 'react';
+import { View,Text,Alert, SafeAreaView, TouchableOpacity, Image, StyleSheet, BackHandler } from 'react-native';
 
 import hamillLogo from '../images/HamillLogoHeader.png';
 import KakaoLoginImage from '../images/KakaoLogin.png';
@@ -16,6 +16,22 @@ const LoginPage = ({ navigation }) => {
   const handleNaverLinkPress = () => {
     navigation.navigate('NaverLogin')
   }
+
+  useEffect(() => {
+    const backAction = () => {
+      Alert.alert('앱 종료', '앱을 종료하시겠습니까?', [
+        { text: '취소', onPress: () => null },
+        { text: '확인', onPress: () => BackHandler.exitApp() },
+      ]);
+      return true;
+    };
+  
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+  
+    return () => {
+      backHandler.remove();
+    };
+  }, []);
   
   return (
     <View style={styles.container}>
@@ -29,7 +45,7 @@ const LoginPage = ({ navigation }) => {
     <SafeAreaView>
 
         {/* 카카오 로그인 버튼 */}
-        <TouchableOpacity onPress={()=>navigation.navigate('HomePage')}>
+        <TouchableOpacity onPress={handleKakaoLinkPress}>
           <Image
             source={KakaoLoginImage}
             style={styles.loginImage}

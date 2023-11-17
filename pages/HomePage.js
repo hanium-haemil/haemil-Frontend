@@ -1,21 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { View,Text, StyleSheet, ScrollView } from 'react-native';
-import { useRoute } from "@react-navigation/native";
+import React, {useEffect, useState} from "react";
+import { View, StyleSheet, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import WeatherBox from '../components/homepage/WeatherBox';
 import GoOutControl from '../components/homepage/GoOutControl';
 import TodoList from '../components/homepage/TodoList';
-import axios from "axios";
-import KakaoTokenManagement from "../components/KakaoTokenManagement";
-import KakaoTokenManagementRT from "../components/KakaoTokenManagementRT";
+
+import { checkTokenValidity } from '../components/loginpage/TokenManagement';
 
 function HomePage({navigation}){
-    
     return(
         <ScrollView style={styles.container}>
-            <KakaoTokenManagement/>
-            {/* <KakaoTokenManagementRT/> */}
             <View style={styles.WeatherBox}>
                 <WeatherBox/>
             </View>

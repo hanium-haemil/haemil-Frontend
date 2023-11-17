@@ -73,6 +73,8 @@ android {
 
     // compileSdkVersion rootProject.ext.compileSdkVersion
     compileSdkVersion 33
+    // buildToolsVersion "23.0.1"
+    buildToolsVersion "30.0.3"
 
     namespace "com.heamillproject"
     defaultConfig {
@@ -89,6 +91,14 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
+                storeFile file('key_name.keystore')
+                storePassword '000000'
+                keyAlias 'key_alias'
+                keyPassword '000000'
+            }
+        }
     }
     buildTypes {
         debug {
@@ -97,9 +107,11 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            // signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+
+            signingConfig signingConfigs.release
         }
     }
 }
@@ -109,6 +121,7 @@ dependencies {
     implementation("com.facebook.react:react-android")
     implementation("androidx.appcompat:appcompat:1.1.0-rc01")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0-alpha02")
+    // implementation(":@react-native-picker_picker")
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
